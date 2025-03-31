@@ -1,0 +1,29 @@
+name: Build
+
+on: [pull_request, push]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - name: Windows cl
+            os: windows-2025
+          - name: Linux g++
+            os: ubuntu-24.04
+          - name: macOS clang++
+            os: macos-15
+
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Make GCC 14 the default toolchain (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 200
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 200
+
+      - run: cmake -B build -S .
+      - run: cmake --build build
